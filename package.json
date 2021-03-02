@@ -1,7 +1,7 @@
 {
     "name": "orbit-jwt",
     "version": "1.9.1",
-    "description": "Helper library for handling JWTs in Angular 10+",
+    "description": "This is a Helper library made for handling JWTs in Angular Web Apps.",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/orbitturner/orbit-jwt.git"
