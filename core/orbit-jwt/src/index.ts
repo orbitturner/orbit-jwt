@@ -1,8 +1,8 @@
 /*
- * Public API Surface of angular-jwt
+ * Public API Surface of orbit-jwt
  */
 
 export * from './lib/jwt.interceptor';
 export * from './lib/jwthelper.service';
 export * from './lib/jwtoptions.token';
-export * from './lib/angular-jwt.module';
+export * from './lib/orbit-jwt.module';
