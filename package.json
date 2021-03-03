@@ -1,62 +1,55 @@
 {
     "name": "orbit-jwt",
-    "version": "1.9.1",
-    "description": "This is a Helper library made for handling JWTs in Angular Web Apps.",
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/orbitturner/orbit-jwt.git"
-    },
+    "version": "2.0.2",
     "scripts": {
-        "dev": "tsc --watch",
-        "test": "karma start",
-        "prepublish": "tsc",
-        "ngc": "ngc"
+        "ng": "ng",
+        "start": "ng serve",
+        "build": "ng build orbit-jwt --prod",
+        "postbuild": "cp ./README.md ./CHANGELOG.md ./LICENSE ./dist/orbit-jwt/",
+        "test": "ng test",
+        "lint": "ng lint",
+        "e2e": "ng e2e",
+        "release": "npm publish dist/orbit-jwt/"
     },
-    "keywords": [
-        "angular",
-        "orbit",
-        "jwt",
-        "authentication",
-        "orbitturner"
-    ],
-    "author": "Orbit Turner",
-    "license": "MIT",
-    "bugs": {
-        "url": "https://github.com/orbitturner/orbit-jwt/issues"
+    "private": false,
+    "dependencies": {
+        "@angular/common": "~10.0.1",
+        "@angular/compiler": "~10.0.1",
+        "@angular/core": "~10.0.1",
+        "@angular/platform-browser": "~10.0.1",
+        "@angular/platform-browser-dynamic": "~10.0.1",
+        "core-js": "^3.2.1",
+        "rxjs": "~6.5.3",
+        "tslib": "^2.0.0",
+        "zone.js": "~0.10.3"
     },
-    "main": "orbit-jwt.js",
-    "typings": "./orbit-jwt.d.ts",
-    "types": "./orbit-jwt.d.ts",
-    "homepage": "https://github.com/orbitturner/orbit-jwt#readme",
     "devDependencies": {
-        "@angular/common": "^2.4.2||^4.0.0",
-        "@angular/compiler": "^2.4.2||^4.0.0",
-        "@angular/compiler-cli": "^2.4.2||^4.0.0",
-        "@angular/core": "^2.4.2||^4.0.0",
-        "@angular/http": "^2.4.2||^4.0.0",
-        "@angular/platform-browser": "^2.4.2||^4.0.0",
-        "@types/jasmine": "^2.5.46",
-        "@types/js-base64": "^2.1.3",
-        "awesome-typescript-loader": "^3.1.2",
-        "core-js": "^2.3.0",
-        "es6-shim": "^0.35.3",
-        "jasmine-core": "^2.4.1",
-        "karma": "^6.1.1",
-        "karma-chrome-launcher": "^2.0.0",
-        "karma-jasmine": "^1.0.2",
-        "karma-phantomjs-launcher": "^1.0.4",
-        "karma-sourcemap-loader": "^0.3.7",
-        "karma-webpack": "^2.0.3",
-        "phantomjs-prebuilt": "^2.1.7",
-        "reflect-metadata": "^0.1.10",
-        "rxjs": "^5.0.0",
-        "typescript": "~2.1.5",
-        "webpack": "^5.24.2",
-        "zone.js": "~0.7.2||~0.8.5"
+        "@angular-devkit/build-angular": "~0.1000.0",
+        "@angular-devkit/build-ng-packagr": "~0.1000.0",
+        "@angular/cli": "~10.0.0",
+        "@angular/compiler-cli": "~10.0.1",
+        "@angular/language-service": "~10.0.1",
+        "@types/jasmine": "~3.4.1",
+        "@types/jasminewd2": "~2.0.3",
+        "@types/node": "^12.11.1",
+        "codelyzer": "^5.1.2",
+        "jasmine-core": "~3.5.0",
+        "jasmine-spec-reporter": "~5.0.0",
+        "karma": "~5.0.0",
+        "karma-chrome-launcher": "~3.1.0",
+        "karma-coverage-istanbul-reporter": "~3.0.2",
+        "karma-jasmine": "~3.3.0",
+        "karma-jasmine-html-reporter": "^1.5.0",
+        "ng-packagr": "^10.0.0",
+        "protractor": "~7.0.0",
+        "ts-node": "~8.4.1",
+        "tslint": "~6.1.0",
+        "typescript": "~3.9.5"
     },
-    "peerDependencies": {
-        "@angular/core": "^2.0.0||^4.0.0",
-        "@angular/http": "^2.0.0||^4.0.0",
-        "rxjs": "^5.0.0"
+    "np": {
+        "contents": "dist/orbit-jwt"
+    },
+    "publishConfig": {
+        "access": "public"
     }
 }

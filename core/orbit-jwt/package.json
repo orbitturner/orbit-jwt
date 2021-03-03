@@ -1,0 +1,29 @@
+{
+    "name": "orbit-jwt",
+    "version": "2.0.2",
+    "description": "This is a Helper library made for handling JWTs in Angular Web Apps.",
+    "private": false,
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/orbitturner/orbit-jwt.git"
+    },
+    "author": "Orbit Turner",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/orbitturner/orbit-jwt/issues"
+    },
+    "keywords": [
+        "jwt",
+        "angular",
+        "orbit",
+        "authentication",
+        "orbitturner"
+    ],
+    "homepage": "https://github.com/orbitturner/orbit-jwt#readme",
+    "peerDependencies": {
+        "@angular/common": ">=9.0.0"
+    },
+    "dependencies": {
+        "tslib": "^2.0.0"
+    }
+}

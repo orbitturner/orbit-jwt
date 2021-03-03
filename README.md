@@ -8,25 +8,33 @@
 
 
 ##Contents
- - [What is this Library for?](#what-is-this-library-for)
- - [Key Features](#key-features)
- - [Installation](#installation)
- - [Basic Configuration](#basic-configuration)
- - [Sending Authenticated Requests](#sending-authenticated-requests)
- - [Configuration Options](#configuration-options)
-    - [Advanced Configuration](#advanced-configuration)
-    - [Configuration for Ionic 2](#configuration-for-ionic-2)
-    - [Sending Per-Request Headers](#sending-per-request-headers)
-    - [Using the Observable Token Stream](#using-the-observable-token-stream)
-    - [Using JwtHelper in Components](#using-jwthelper-in-components)
- - [Checking Authentication to Hide/Show Elements and Handle Routing](#checking-authentication-to-hideshow-elements-and-handle-routing)
- - [Contributing](#contributing)
- - [Development](#development)
- - [What is orbitturner?](#what-is-orbitturner)
- - [Create a free account in orbitturner](#create-a-free-account-in-orbitturner)
- - [Issue Reporting](#issue-reporting)
- - [Author](#author)
- - [License](#license)
+- [orbit-jwt](#orbit-jwt)
+  * [What is this Library for?](#what-is-this-library-for-)
+  * [Key Features](#key-features)
+  * [Installation](#installation)
+  * [Usage: Standalone](#usage--standalone)
+  * [Usage: Injection](#usage--injection)
+  * [Configuration Options](#configuration-options)
+    + [`tokenGetter: function(HttpRequest): string`](#-tokengetter--function-httprequest---string-)
+    + [`allowedDomains: array`](#-alloweddomains--array-)
+    + [`disallowedRoutes: array`](#-disallowedroutes--array-)
+    + [`headerName: string`](#-headername--string-)
+    + [`authScheme: string | function(HttpRequest): string`](#-authscheme--string---function-httprequest---string-)
+    + [`throwNoTokenError: boolean`](#-thrownotokenerror--boolean-)
+    + [`skipWhenExpired: boolean`](#-skipwhenexpired--boolean-)
+  * [Using a Custom Options Factory Function](#using-a-custom-options-factory-function)
+  * [Configuration for Ionic 2+](#configuration-for-ionic-2-)
+  * [Configuration Options](#configuration-options-1)
+    + [`JwtHelperService: service`](#-jwthelperservice--service-)
+  * [isTokenExpired (old tokenNotExpired function)](#istokenexpired--old-tokennotexpired-function-)
+  * [getTokenExpirationDate](#gettokenexpirationdate)
+  * [decodeToken](#decodetoken)
+  * [Contributing](#contributing)
+  * [Issue Reporting](#issue-reporting)
+  * [GREETINGS](#greetings)
+  * [Author](#author)
+  * [License](#license)
+
 
 
 ## What is this Library for?
@@ -34,6 +42,8 @@
 **orbit-jwt** is a small and unopinionated library that is useful for automatically attaching a [JSON Web Token (JWT)](http://jwt.io/introduction) as an `Authorization` header when making HTTP requests from an Angular 2 app. It also has a number of helper methods that are useful for doing things like decoding JWTs.
 
 This library does not have any functionality for (or opinion about) implementing user authentication and retrieving JWTs to begin with. Those details will vary depending on your setup, but in most cases, you will use a regular HTTP request to authenticate your users and then save their JWTs in local storage or in a cookie if successful.
+
+> **Note:** This library can only be used with Angular 4.3 and higher because it relies on an `HttpInterceptor` from Angular's `HttpClient`. This feature is not available on lower versions.
 
 
 
@@ -45,298 +55,374 @@ This library does not have any functionality for (or opinion about) implementing
 * Conditionally allow **route navigation** based on JWT status
 
 
+
 ## Installation
 
 ```bash
-npm install orbit-jwt
+# installation with npm
+npm install @auth0/angular-jwt
+
+# installation with yarn
+yarn add @auth0/angular-jwt
 ```
 
-The library comes with several helpers that are useful in your Angular 2 apps.
+**This library relies on the URL interface which is not supported in IE11.**
+To solve the IE11 compatibility, you can add a polyfill.
 
-1. `AuthHttp` - allows for individual and explicit authenticated HTTP requests
-2. `tokenNotExpired` - allows you to check whether there is a non-expired JWT in local storage. This can be used for conditionally showing/hiding elements and stopping navigation to certain routes if the user isn't authenticated
+- run `npm i --save url-polyfill`
+- add `import 'url-polyfill';` to `polyfills.ts` in your project
 
+## Usage: Standalone
 
-## Basic Configuration
-
-Create a new `auth.module.ts` file with the following code:
+If you are only interested in the JWT Decoder, and are not interested in extended
+injectable features, you can simply create an instance of the utility and use it
+directly:
 
 ```ts
-import { NgModule } from '@angular/core';
-import { Http, RequestOptions } from '@angular/http';
-import { AuthHttp, AuthConfig } from 'orbit-jwt';
+import { JwtHelperService } from "@auth0/angular-jwt";
 
-export function authHttpServiceFactory(http: Http, options: RequestOptions) {
-  return new AuthHttp(new AuthConfig(), http, options);
+const helper = new JwtHelperService();
+
+const decodedToken = helper.decodeToken(myRawToken);
+const expirationDate = helper.getTokenExpirationDate(myRawToken);
+const isExpired = helper.isTokenExpired(myRawToken);
+```
+
+## Usage: Injection
+
+Import the `JwtModule` module and add it to your imports list. Call the `forRoot` method and provide a `tokenGetter` function. You must also add any domains to the `allowedDomains`, that you want to make requests to by specifying an `allowedDomains` array.
+
+Be sure to import the `HttpClientModule` as well.
+
+```ts
+import { JwtModule } from "@auth0/angular-jwt";
+import { HttpClientModule } from "@angular/common/http";
+
+export function tokenGetter() {
+  return localStorage.getItem("access_token");
 }
 
 @NgModule({
-  providers: [
-    {
-      provide: AuthHttp,
-      useFactory: authHttpServiceFactory,
-      deps: [Http, RequestOptions]
-    }
-  ]
+  bootstrap: [AppComponent],
+  imports: [
+    // ...
+    HttpClientModule,
+    JwtModule.forRoot({
+      config: {
+        tokenGetter: tokenGetter,
+        allowedDomains: ["example.com"],
+        disallowedRoutes: ["http://example.com/examplebadroute/"],
+      },
+    }),
+  ],
 })
-export class AuthModule {}
+export class AppModule {}
 ```
 
-We added a factory function to use as a provider for `AuthHttp`. This will allow you to configure orbit-jwt in the `AuthConfig` instance later on.
-
-
-## Sending Authenticated Requests
-
-If you wish to only send a JWT on a specific HTTP request, you can use the `AuthHttp` class. This class is a wrapper for Angular 2's `Http` and thus supports all the same HTTP methods.
+Any requests sent using Angular's `HttpClient` will automatically have a token attached as an `Authorization` header.
 
 ```ts
-import { AuthHttp } from 'orbit-jwt';
-// ...
-class App {
+import { HttpClient } from "@angular/common/http";
 
-  thing: string;
+export class AppComponent {
+  constructor(public http: HttpClient) {}
 
-  constructor(public authHttp: AuthHttp) {}
-
-  getThing() {
-    this.authHttp.get('http://example.com/api/thing')
-      .subscribe(
-        data => this.thing = data,
-        err => console.log(err),
-        () => console.log('Request Complete')
-      );
+  ping() {
+    this.http.get("http://example.com/api/things").subscribe(
+      (data) => console.log(data),
+      (err) => console.log(err)
+    );
   }
 }
 ```
-
 
 ## Configuration Options
 
-`AUTH_PROVIDERS` gives a default configuration setup:
+### `tokenGetter: function(HttpRequest): string`
 
-* Header Name: `Authorization`
-* Header Prefix: `Bearer`
-* Token Name: `token`
-* Token Getter Function: `(() => localStorage.getItem(tokenName))`
-* Supress error and continue with regular HTTP request if no JWT is saved: `false`
-* Global Headers: none
-
-If you wish to configure the `headerName`, `headerPrefix`, `tokenName`, `tokenGetter` function, `noTokenScheme`, `globalHeaders`, or `noJwtError` boolean, you can using `provideAuth` or the factory pattern (see below).
-
-#### Errors
-
-By default, if there is no valid JWT saved, `AuthHttp` will return an Observable `error` with 'Invalid JWT'. If you would like to continue with an unauthenticated request instead, you can set `noJwtError` to `true`.
-
-#### Token Scheme
-
-The default scheme for the `Authorization` header is `Bearer`, but you may either provide your own by specifying a `headerPrefix`, or you may remove the prefix altogether by setting `noTokenScheme` to `true`.
-
-#### Global Headers
-
-You may set as many global headers as you like by passing an array of header-shaped objects to `globalHeaders`.
-
-### Advanced Configuration
-
-You may customize any of the above options using a factory which returns an `AuthHttp` instance with the options you would like to change.
+The `tokenGetter` is a function which returns the user's token. This function simply needs to make a retrieval call to wherever the token is stored. In many cases, the token will be stored in local storage or session storage.
 
 ```ts
-import { NgModule } from '@angular/core';
-import { Http, RequestOptions } from '@angular/http';
-import { AuthHttp, AuthConfig } from 'orbit-jwt';
-
-export function authHttpServiceFactory(http: Http, options: RequestOptions) {
-  return new AuthHttp(new AuthConfig({
-    tokenName: 'token',
-		tokenGetter: (() => sessionStorage.getItem('token')),
-		globalHeaders: [{'Content-Type':'application/json'}],
-	}), http, options);
-}
-
-@NgModule({
-  providers: [
-    {
-      provide: AuthHttp,
-      useFactory: authHttpServiceFactory,
-      deps: [Http, RequestOptions]
-    }
-  ]
-})
-export class AuthModule {}
-```
-
-### Configuration for Ionic
-
-To configure orbit-jwt in Ionic applications, use the factory pattern in your `@NgModule`. Since Ionic provides its own API for accessing local storage, configure the `tokenGetter` to use it.
-
-```ts
-import { AuthHttp, AuthConfig } from 'orbit-jwt';
-import { Http } from '@angular/http';
-import { Storage } from '@ionic/storage';
-
-let storage = new Storage();
-
-export function getAuthHttp(http) {
-  return new AuthHttp(new AuthConfig({
-    headerPrefix: YOUR_HEADER_PREFIX,
-    noJwtError: true,
-    globalHeaders: [{'Accept': 'application/json'}],
-    tokenGetter: (() => storage.get('token')),
-  }), http);
-}
-
-@NgModule({
-  imports: [
-    IonicModule.forRoot(MyApp),
-  ],
-  providers: [
-    {
-      provide: AuthHttp,
-      useFactory: getAuthHttp,
-      deps: [Http]
+// ...
+JwtModule.forRoot({
+  config: {
+    // ...
+    tokenGetter: () => {
+      return localStorage.getItem("access_token");
     },
-  // ...
-  bootstrap: [IonicApp],
-  // ...
-})
+  },
+});
 ```
 
-### Sending Per-Request Headers
-
-You may also send custom headers on a per-request basis with your `authHttp` request by passing them in an options object.
+If you have multiple tokens for multiple domains, you can use the `HttpRequest` passed to the `tokenGetter` function to get the correct token for each intercepted request.
 
 ```ts
-getThing() {
-  let myHeader = new Headers();
-  myHeader.append('Content-Type', 'application/json');
+// ...
+JwtModule.forRoot({
+  config: {
+    // ...
+    tokenGetter: (request) => {
+      if (request.url.includes("foo")) {
+        return localStorage.getItem("access_token_foo");
+      }
 
-  this.authHttp.get('http://example.com/api/thing', { headers: myHeader })
-    .subscribe(
-      data => this.thing = data,
-      err => console.log(error),
-      () => console.log('Request Complete')
-    );
-
-  // Pass it after the body in a POST request
-  this.authHttp.post('http://example.com/api/thing', 'post body', { headers: myHeader })
-    .subscribe(
-      data => this.thing = data,
-      err => console.log(error),
-      () => console.log('Request Complete')
-    );
-}
+      return localStorage.getItem("access_token");
+    },
+  },
+});
 ```
 
-### Using the Observable Token Stream
+### `allowedDomains: array`
 
-If you wish to use the JWT as an observable stream, you can call `tokenStream` from `AuthHttp`.
+Authenticated requests should only be sent to domains you know and trust. Many applications make requests to APIs from multiple domains, some of which are not controlled by the developer. Since there is no way to know what the API being called will do with the information contained in the request, it is best to not send the user's token to all APIs in a blind fashion.
+
+List any domains you wish to allow authenticated requests to be sent to by specifying them in the `allowedDomains` array. **Note that standard http port 80 and https port 443 requests don't require a port to be specified. A port is only required in the allowed domains host name if you are authenticating against a non-standard port e.g. localhost:3001**
 
 ```ts
-tokenSubscription() {
-  this.authHttp.tokenStream.subscribe(
-      data => console.log(data),
-      err => console.log(err),
-      () => console.log('Complete')
-    );
-}
+// ...
+JwtModule.forRoot({
+  config: {
+    // ...
+    allowedDomains: ["localhost:3001", "foo.com", "bar.com"],
+  },
+});
 ```
 
-This can be useful for cases where you want to make HTTP requests out of observable streams. The `tokenStream` can be mapped and combined with other streams at will.
+### `disallowedRoutes: array`
 
-
-## Using JwtHelper in Components
-
-The `JwtHelper` class has several useful methods that can be utilized in your components:
-
-* `decodeToken`
-* `getTokenExpirationDate`
-* `isTokenExpired`
-
-You can use these methods by passing in the token to be evaluated.
+If you do not want to replace the authorization headers for specific routes, list them here. This can be useful if your
+initial auth route(s) are on an allowed domain and take basic auth headers. These routes need to be prefixed with the correct protocol (`http://`, `https://`). If you want to add a route to the list of disallowed routes regardless of the protocol, you can prefix it with `//`.
 
 ```ts
-jwtHelper: JwtHelper = new JwtHelper();
-
-useJwtHelper() {
-  var token = localStorage.getItem('token');
-
-  console.log(
-    this.jwtHelper.decodeToken(token),
-    this.jwtHelper.getTokenExpirationDate(token),
-    this.jwtHelper.isTokenExpired(token)
-  );
-}
+// ...
+JwtModule.forRoot({
+  config: {
+    // ...
+    disallowedRoutes: [
+      "http://localhost:3001/auth/",
+      "https://foo.com/bar/",
+      "//foo.com/bar/baz",
+      /localhost:3001\/foo\/far.*/,
+    ], // strings and regular expressions
+  },
+});
 ```
 
+**Note:** If requests are sent to the same domain that is serving your Angular application, you do not need to add that domain to the `allowedDomains` array. However, this is only the case if you don't specify the domain in the `Http` request.
 
-## Checking Authentication to Hide/Show Elements and Handle Routing
-
-The `tokenNotExpired` function can be used to check whether a JWT exists in local storage, and if it does, whether it has expired or not. If the token is valid, `tokenNotExpired` returns `true`, otherwise it returns `false`.
-
-> **Note:** `tokenNotExpired` will by default assume the token name is `token` unless a token name is passed to it, ex: `tokenNotExpired('token_name')`. This will be changed in a future release to automatically use the token name that is set in `AuthConfig`.
+For example, the following request assumes that the domain is the same as the one serving your app. It doesn't need to be allowed in this case.
 
 ```ts
-// auth.service.ts
-
-import { tokenNotExpired } from 'orbit-jwt';
-
-loggedIn() {
-  return tokenNotExpired();
-}
+this.http.get('/api/things')
+  .subscribe(...)
 ```
 
-The `loggedIn` method can now be used in views to conditionally hide and show elements.
-
-```html
- <button id="login" *ngIf="!auth.loggedIn()">Log In</button>
- <button id="logout" *ngIf="auth.loggedIn()">Log Out</button>
-```
-
-To guard routes that should be limited to authenticated users, set up an `AuthGuard`.
+However, if you are serving your API at the same domain as that which is serving your Angular app **and** you are specifying that domain in `Http` requests, then it **does** need to be explicitely allowed.
 
 ```ts
-// auth-guard.service.ts
+// Both the Angular app and the API are served at
+// localhost:4200 but because that domain is specified
+// in the request, it must be allowed
+this.http.get('http://localhost:4200/api/things')
+  .subscribe(...)
+```
 
-import { Injectable } from '@angular/core';
-import { Router } from '@angular/router';
-import { CanActivate } from '@angular/router';
-import { Auth } from './auth.service';
+### `headerName: string`
 
-@Injectable()
-export class AuthGuard implements CanActivate {
+The default header name is `Authorization`. This can be changed by specifying a custom `headerName` which is to be a string value.
 
-  constructor(private auth: Auth, private router: Router) {}
+```ts
+// ...
+JwtModule.forRoot({
+  config: {
+    // ...
+    headerName: "Your Header Name",
+  },
+});
+```
 
-  canActivate() {
-    if(this.auth.loggedIn()) {
-      return true;
-    } else {
-      this.router.navigate(['unauthorized']);
-      return false;
-    }
+### `authScheme: string | function(HttpRequest): string`
+
+The default authorization scheme is `Bearer` followed by a single space. This can be changed by specifying a custom `authScheme`. You can pass a string which will prefix the token for each request.
+
+```ts
+// ...
+JwtModule.forRoot({
+  config: {
+    // ...
+    authScheme: "Basic ",
+  },
+});
+```
+
+If you want to change the auth scheme dynamically, or based on the request, you can configure a getter function which returns a string.
+
+```ts
+// ...
+JwtModule.forRoot({
+  config: {
+    // ...
+    authScheme: (request) => {
+      if (request.url.includes("foo")) {
+        return "Basic ";
+      }
+
+      return "Bearer ";
+    },
+  },
+});
+```
+
+### `throwNoTokenError: boolean`
+
+Setting `throwNoTokenError` to `true` will result in an error being thrown if a token cannot be retrieved with the `tokenGetter` function. Defaults to `false`.
+
+```ts
+// ...
+JwtModule.forRoot({
+  config: {
+    // ...
+    throwNoTokenError: true,
+  },
+});
+```
+
+### `skipWhenExpired: boolean`
+
+By default, the user's JWT will be sent in `HttpClient` requests even if it is expired. You may choose to not allow the token to be sent if it is expired by setting `skipWhenExpired` to true.
+
+```ts
+// ...
+JwtModule.forRoot({
+  config: {
+    // ...
+    skipWhenExpired: true,
+  },
+});
+```
+
+## Using a Custom Options Factory Function
+
+In some cases, you may need to provide a custom factory function to properly handle your configuration options. This is the case if your `tokenGetter` function relies on a service or if you are using an asynchronous storage mechanism (like Ionic's `Storage`).
+
+Import the `JWT_OPTIONS` `InjectionToken` so that you can instruct it to use your custom factory function.
+
+Create a factory function and specify the options as you normally would if you were using `JwtModule.forRoot` directly. If you need to use a service in the function, list it as a parameter in the function and pass it in the `deps` array when you provide the function.
+
+```ts
+import { JwtModule, JWT_OPTIONS } from '@auth0/angular-jwt';
+import { TokenService } from './app.tokenservice';
+
+// ...
+
+export function jwtOptionsFactory(tokenService) {
+  return {
+    tokenGetter: () => {
+      return tokenService.getAsyncToken();
+    },
+    allowedDomains: ["example.com"]
   }
 }
+
+// ...
+
+@NgModule({
+  // ...
+  imports: [
+    JwtModule.forRoot({
+      jwtOptionsProvider: {
+        provide: JWT_OPTIONS,
+        useFactory: jwtOptionsFactory,
+        deps: [TokenService]
+      }
+    })
+  ],
+  providers: [TokenService]
+})
 ```
 
-With the guard in place, you can use it in your route configuration.
+**Note:**: If a `jwtOptionsFactory` is defined, then `config` is ignored. _Both configuration alternatives can't be defined at the same time_.
+
+## Configuration for Ionic 2+
+
+The custom factory function approach described above can be used to get a token asynchronously with Ionic's `Storage`.
 
 ```ts
-import { AuthGuard } from './auth.guard';
+import { JwtModule, JWT_OPTIONS } from '@auth0/angular-jwt';
+import { Storage } from '@ionic/storage';
 
-export const routes: RouterConfig = [
-  { path: 'admin', component: AdminComponent, canActivate: [AuthGuard] },
-  { path: 'unauthorized', component: UnauthorizedComponent }
-];
+export function jwtOptionsFactory(storage) {
+  return {
+    tokenGetter: () => {
+      return storage.get('access_token');
+    },
+    allowedDomains: ["example.com"]
+  }
+}
+
+// ...
+
+@NgModule({
+  // ...
+  imports: [
+    JwtModule.forRoot({
+      jwtOptionsProvider: {
+        provide: JWT_OPTIONS,
+        useFactory: jwtOptionsFactory,
+        deps: [Storage]
+      }
+    })
+  ]
+})
 ```
 
+**Note:**: If a `jwtOptionsFactory` is defined, then `config` is ignored. _Both configuration alternatives can't be defined at the same time_.
+
+## Configuration Options
+
+### `JwtHelperService: service`
+
+This service contains helper functions:
+
+## isTokenExpired (old tokenNotExpired function)
+
+```
+import { JwtHelperService } from '@auth0/angular-jwt';
+// ...
+constructor(public jwtHelper: JwtHelperService) {}
+
+ngOnInit() {
+console.log(this.jwtHelper.isTokenExpired()); // true or false
+}
+```
+
+## getTokenExpirationDate
+
+```
+import { JwtHelperService } from '@auth0/angular-jwt';
+// ...
+constructor(public jwtHelper: JwtHelperService) {}
+
+ngOnInit() {
+console.log(this.jwtHelper.getTokenExpirationDate()); // date
+}
+```
+
+## decodeToken
+
+```
+import { JwtHelperService } from '@auth0/angular-jwt';
+// ...
+constructor(public jwtHelper: JwtHelperService) {}
+
+ngOnInit() {
+console.log(this.jwtHelper.decodeToken(token)); // token
+}
+```
 
 ## Contributing
 
 Pull requests are welcome!
-
-
-## Development
-
-Use `npm run dev` to compile and watch for changes.
 
 
 ## Issue Reporting
