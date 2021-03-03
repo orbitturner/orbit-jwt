@@ -8,12 +8,6 @@
   "files": [],
   "references": [
     {
-      "path": "./core/tsconfig.app.json"
-    },
-    {
-      "path": "./core/tsconfig.spec.json"
-    },
-    {
       "path": "./core/orbit-jwt/tsconfig.lib.json"
     },
     {
