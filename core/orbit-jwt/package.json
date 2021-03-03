@@ -1,6 +1,6 @@
 {
     "name": "orbit-jwt",
-    "version": "2.0.2",
+    "version": "2.0.3",
     "description": "This is a Helper library made for handling JWTs in Angular Web Apps.",
     "private": false,
     "repository": {

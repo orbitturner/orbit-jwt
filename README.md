@@ -4,7 +4,9 @@
 
 **orbit-jwt** is a helper library for working with [JWTs](http://jwt.io/introduction) in your Angular applications.
 
-
+<p align="center">
+  <a href="http://orbitturner.com/"><img src="https://raw.githubusercontent.com/orbitturner/ORBIT_SUGAR_CODES/master/assets/ORBIT-JWT-ANNOUNCEMENT-1024.png" width="auto" alt="Orbit-JWT COVER"/></a>
+</p>
 
 
 ##Contents
@@ -60,10 +62,10 @@ This library does not have any functionality for (or opinion about) implementing
 
 ```bash
 # installation with npm
-npm install @auth0/angular-jwt
+npm install orbit-jwt
 
 # installation with yarn
-yarn add @auth0/angular-jwt
+yarn add orbit-jwt
 ```
 
 **This library relies on the URL interface which is not supported in IE11.**
@@ -79,7 +81,7 @@ injectable features, you can simply create an instance of the utility and use it
 directly:
 
 ```ts
-import { JwtHelperService } from "@auth0/angular-jwt";
+import { JwtHelperService } from "orbit-jwt";
 
 const helper = new JwtHelperService();
 
@@ -95,7 +97,7 @@ Import the `JwtModule` module and add it to your imports list. Call the `forRoot
 Be sure to import the `HttpClientModule` as well.
 
 ```ts
-import { JwtModule } from "@auth0/angular-jwt";
+import { JwtModule } from "orbit-jwt";
 import { HttpClientModule } from "@angular/common/http";
 
 export function tokenGetter() {
@@ -183,7 +185,7 @@ List any domains you wish to allow authenticated requests to be sent to by speci
 JwtModule.forRoot({
   config: {
     // ...
-    allowedDomains: ["localhost:3001", "foo.com", "bar.com"],
+    allowedDomains: ["localhost:4200", "orbit.com", "exemple.com"],
   },
 });
 ```
@@ -199,10 +201,10 @@ JwtModule.forRoot({
   config: {
     // ...
     disallowedRoutes: [
-      "http://localhost:3001/auth/",
-      "https://foo.com/bar/",
+      "http://localhost:4200/auth/",
+      "https://exemple.com/bar/",
       "//foo.com/bar/baz",
-      /localhost:3001\/foo\/far.*/,
+      /localhost:4200\/foo\/far.*/,
     ], // strings and regular expressions
   },
 });
@@ -310,7 +312,7 @@ Import the `JWT_OPTIONS` `InjectionToken` so that you can instruct it to use you
 Create a factory function and specify the options as you normally would if you were using `JwtModule.forRoot` directly. If you need to use a service in the function, list it as a parameter in the function and pass it in the `deps` array when you provide the function.
 
 ```ts
-import { JwtModule, JWT_OPTIONS } from '@auth0/angular-jwt';
+import { JwtModule, JWT_OPTIONS } from 'orbit-jwt';
 import { TokenService } from './app.tokenservice';
 
 // ...
@@ -348,7 +350,7 @@ export function jwtOptionsFactory(tokenService) {
 The custom factory function approach described above can be used to get a token asynchronously with Ionic's `Storage`.
 
 ```ts
-import { JwtModule, JWT_OPTIONS } from '@auth0/angular-jwt';
+import { JwtModule, JWT_OPTIONS } from 'orbit-jwt';
 import { Storage } from '@ionic/storage';
 
 export function jwtOptionsFactory(storage) {
@@ -387,7 +389,7 @@ This service contains helper functions:
 ## isTokenExpired (old tokenNotExpired function)
 
 ```
-import { JwtHelperService } from '@auth0/angular-jwt';
+import { JwtHelperService } from 'orbit-jwt';
 // ...
 constructor(public jwtHelper: JwtHelperService) {}
 
@@ -399,7 +401,7 @@ console.log(this.jwtHelper.isTokenExpired()); // true or false
 ## getTokenExpirationDate
 
 ```
-import { JwtHelperService } from '@auth0/angular-jwt';
+import { JwtHelperService } from 'orbit-jwt';
 // ...
 constructor(public jwtHelper: JwtHelperService) {}
 
@@ -411,7 +413,7 @@ console.log(this.jwtHelper.getTokenExpirationDate()); // date
 ## decodeToken
 
 ```
-import { JwtHelperService } from '@auth0/angular-jwt';
+import { JwtHelperService } from 'orbit-jwt';
 // ...
 constructor(public jwtHelper: JwtHelperService) {}
 
