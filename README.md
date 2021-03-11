@@ -9,6 +9,14 @@
 </p>
 
 
+<h1 align="center">INSTALLATION</h1>
+<p align="center">
+<a href="https://www.npmjs.com/package/orbit-jwt"><img src="https://img.shields.io/badge/DOWNLOAD-LATEST%20VERSION-lime?style=for-the-badge&logo=docusign&logoColor=lime"></a>
+<a href="https://github.com/orbitturner/orbit-jwt/issues/new/choose"><img src="https://img.shields.io/badge/ISSUES-CREATE%20AN%20ISSUE-crimson?style=for-the-badge&logo=indeed&logoColor=CRIMSON"></a>
+</p>
+<br/>
+
+
 ## Contents
 - [orbit-jwt](#orbit-jwt)
   * [What is this Library for?](#what-is-this-library-for-)
