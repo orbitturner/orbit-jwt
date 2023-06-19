@@ -21,9 +21,9 @@
     ],
     "homepage": "https://github.com/orbitturner/orbit-jwt#readme",
     "peerDependencies": {
-        "@angular/common": ">=9.0.0"
+        "@angular/common": ">=15"
     },
     "dependencies": {
-        "tslib": "^2.0.0"
+        "tslib": "^2.5.3"
     }
 }
